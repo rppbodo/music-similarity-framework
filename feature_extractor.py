@@ -3,7 +3,7 @@ import sys
 import librosa
 import numpy as np
 
-def handle_directories(track, feature_name):
+def handle_directories(track, extractor_name):
 	base_dir = os.path.join(track.path, "local_features")
 	if not os.path.exists(base_dir):
 		print("creating", base_dir)
@@ -19,19 +19,19 @@ def handle_directories(track, feature_name):
 		print("creating", track_dir)
 		os.makedirs(track_dir)
 	
-	return os.path.join(track_dir, feature_name + ".npz")
+	return os.path.join(track_dir, extractor_name + ".npz")
 
 # local features must be (m, n):
 # m = number of frames
 # n = dimension of the feature
-def feature_extractor(track, feature_name):
-	filename = handle_directories(track, feature_name)
+def feature_extractor(track, extractor_name):
+	filename = handle_directories(track, extractor_name)
 	
 	if not os.path.isfile(filename):
 		print("computing", filename)
 		track.load()
 		thismodule = sys.modules[__name__]
-		feature = getattr(thismodule, feature_name)(track)
+		feature = getattr(thismodule, extractor_name)(track)
 		track.unload()
 		np.savez(filename, feature)
 		return feature
