@@ -28,7 +28,7 @@ def feature_extractor(track, feature_name):
 	filename = handle_directories(track, feature_name)
 	
 	if not os.path.isfile(filename):
-		print("saving", filename)
+		print("computing", filename)
 		track.load()
 		thismodule = sys.modules[__name__]
 		feature = getattr(thismodule, feature_name)(track)
