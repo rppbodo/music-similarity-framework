@@ -20,6 +20,7 @@ class Track:
 		self.audio = None
 		self.local_feat = None
 		self.global_feat = None
+		self.distances = None
 	
 	def load(self):
 		audio, sr = librosa.core.load(self.filename, sr=self.samplerate)
@@ -38,6 +39,7 @@ class Track:
 		self.audio = None
 		self.local_feat = None
 		self.global_feat = None
+		self.distances = None
 	
 	def __str__(self):
 		return str(self.index) + ": " + self.class_ + "/" + self.basename + " (~" + str(int(len(self.audio) / self.samplerate)) + "sec)"
