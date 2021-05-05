@@ -5,21 +5,6 @@ import distance_calculator as dc
 import metric_calculator as mc
 import utils as u
 
-def print_metric_type_options():
-	print("[metric type]")
-	str_1 = "--similarity or -s"
-	str_2 = "Compute intra-inter class similarity ratios"
-	str_3 = "--cover or -c"
-	str_4 = "Compute cover song identification metrics"
-	m = len(str_1)
-	n = len(str_3)
-	if m > n:
-		print(str_1, "\t", str_2)
-		print(str_3, (m - n - 1) * " ", "\t", str_4)
-	else:
-		print(str_1, (n - m - 1) * " ", "\t", str_2)
-		print(str_3, "\t", str_4)
-
 def main(dataset, extractor, aggregator, distance, metric_type):
 	classes, tracks = ds.load(dataset)
 	print(len(classes), "classes")
@@ -50,7 +35,9 @@ if __name__ == "__main__":
 		print("usage: python", sys.argv[0], "[dataset path] [extractor name] [aggregator name] [distance name] [metric type]")
 		print()
 		
-		print_metric_type_options()
+		print("[metric type]")
+		print("--similarity or -s", "\t", "Compute intra-inter class similarity ratios")
+		print("--cover or -c     ", "\t", "Compute cover song identification metrics")
 		print()
 		
 		sys.exit(1)

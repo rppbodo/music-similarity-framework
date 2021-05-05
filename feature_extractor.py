@@ -2,6 +2,7 @@ import os
 import sys
 import librosa
 import numpy as np
+from essentia.standard import FrameGenerator, Windowing, Spectrum, MFCC, PitchMelodia, PitchContourSegmentation
 
 def handle_directories(track, extractor_name):
 	base_dir = os.path.join(track.path, "local_features")
@@ -80,4 +81,33 @@ def rms(track):
 
 def zero_crossing_rate(track):
 	return librosa.feature.zero_crossing_rate(track.audio).T
+
+# ************************************************************************************************
+# features from essentia                                           https://github.com/MTG/essentia
+# ************************************************************************************************
+def mfcc(track):
+	frames = FrameGenerator(audio=track.audio)
+	window = Windowing(type="hann")
+	spectrum = Spectrum()
+	
+	spectrogram = []
+	for frame in frames:
+		frame_windowed = window(frame)
+		frame_spectrum = spectrum(frame_windowed)
+		spectrogram.append(frame_spectrum)
+	
+	spectrogram = np.array(spectrogram)
+	mfcc = MFCC(sampleRate=track.samplerate, inputSize=513, numberCoefficients=20)
+	mfccs = []
+	for spectrum in spectrogram:
+		mfcc_bands, mfcc_coeffs = mfcc(spectrum)
+		mfccs.append(mfcc_coeffs[1:]) # drop the first coefficient
+	return np.array(mfccs)
+
+def pitch_contour_segmentation(track):
+	pm = PitchMelodia(sampleRate=track.samplerate)
+	pcs = PitchContourSegmentation(sampleRate=track.samplerate)
+	pitch, pitchConfidence = pm(track.audio)
+	onset, duration, pitches = pcs(pitch, track.audio)
+	return pitches.reshape(len(pitches), 1)
 
