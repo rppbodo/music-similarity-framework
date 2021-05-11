@@ -3,6 +3,7 @@ import sys
 import gzip
 import joblib
 import numpy as np
+from sklearn.mixture import GaussianMixture
 
 import feature_extractor as fe
 
@@ -45,9 +46,9 @@ def feature_aggregator(track, extractor_name, aggregator_name):
 			global_feat = joblib.load(fo)
 			return global_feat
 
-# =================================================================================================
+# ================================================================================================
 # single gaussian methods
-# =================================================================================================
+# ================================================================================================
 def basic_stats_1(track):
 	mean_values = np.mean(track.local_feat, axis=0)
 	std_values = np.std(track.local_feat, axis=0)
@@ -84,5 +85,40 @@ def diff_stats_2(track):
 	diff_max_values = np.max(np.diff(track.local_feat, axis=0), axis=0)
 	global_feat = np.concatenate((mean_values, std_values, min_values, max_values, diff_mean_values, diff_std_values, diff_min_values, diff_max_values))
 	assert len(global_feat) == 8 * track.local_feat.shape[1]
+	return global_feat
+
+def statistical_summarization(track):
+	n_features = track.local_feat.shape[1]
+	means = np.mean(track.local_feat, axis=0)
+	
+	covariance_matrix = np.cov(track.local_feat.T) # numpy.cov expects each row representing a variable, and each column a single observation of all those variables.
+	variances = np.diagonal(covariance_matrix)
+	covariances = []
+	for i in range(1, n_features):
+		covariances.extend(np.diagonal(covariance_matrix, offset=i))
+	
+	global_feat = np.concatenate((np.concatenate((means, variances)), covariances))
+	assert len(global_feat) == 2 * n_features + (n_features * (n_features - 1)) / 2
+	return global_feat
+
+# ================================================================================================
+# gaussian mixture model
+# ================================================================================================
+def gaussian_mixture_model(track):
+	n_components = 8
+	n_features = track.local_feat.shape[1]
+	
+	gmm = GaussianMixture(n_components=n_components, max_iter=200)
+	gmm.fit(track.local_feat)
+	global_feat = gmm.weights_	
+	for i in range(n_components):
+		means = gmm.means_[i]
+		variances = np.diagonal(gmm.covariances_[i])
+		covariances = []
+		for j in range(1, n_features):
+			covariances.extend(np.diagonal(gmm.covariances_[i], offset=j))
+		global_feat = np.concatenate((np.concatenate((np.concatenate((global_feat, means)), variances)), covariances))
+	
+	assert len(global_feat) == n_components * (2 * n_features + (n_features * (n_features - 1)) / 2) + n_components
 	return global_feat
 
