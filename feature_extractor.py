@@ -1,7 +1,10 @@
 import os
 import sys
 import librosa
+
 import numpy as np
+import rp_extract as rp
+
 from essentia.standard import FrameGenerator, Windowing, Spectrum, MFCC, PitchMelodia, PitchContourSegmentation
 
 def handle_directories(track, extractor_name):
@@ -125,4 +128,31 @@ def pitch_contour_segmentation(track):
 	pitch, pitchConfidence = pm(track.audio)
 	onset, duration, pitches = pcs(pitch, track.audio)
 	return pitches.reshape(len(pitches), 1)
+
+# ************************************************************************************************
+# features from rp_extract                            https://github.com/tuwien-musicir/rp_extract
+# ************************************************************************************************
+def rhythm_pattern(track):
+	feat = rp.rp_extract(track.audio, track.samplerate, extract_rp=True)
+	return feat["rp"].flatten()
+
+def rhythm_histogram(track):
+	feat = rp.rp_extract(track.audio, track.samplerate, extract_rh=True)
+	return feat["rh"].flatten()
+
+def temporal_rhythm_histogram(track):
+	feat = rp.rp_extract(track.audio, track.samplerate, extract_trh=True)
+	return feat["trh"].flatten()
+
+def temporal_statistical_spectrum_descriptor(track):
+	feat = rp.rp_extract(track.audio, track.samplerate, extract_tssd=True)
+	return feat["tssd"].flatten()
+
+def statistical_spectrum_descriptor(track):
+	feat = rp.rp_extract(track.audio, track.samplerate, extract_ssd=True)
+	return feat["ssd"].flatten()
+
+def modulation_variance_descriptor(track):
+	feat = rp.rp_extract(track.audio, track.samplerate, extract_mvd=True)
+	return feat["mvd"].flatten()
 
