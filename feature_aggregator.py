@@ -122,3 +122,61 @@ def gaussian_mixture_model(track):
 	assert len(global_feat) == n_components * (2 * n_features + (n_features * (n_features - 1)) / 2) + n_components
 	return global_feat
 
+# ================================================================================================
+# aggregators for symbolic sequences
+# ================================================================================================
+def octave_abstraction(track):
+	return np.array([int(p) % 12 for p in track.local_feat])
+
+def interval_abstraction(track):
+	length = len(track.local_feat)
+	if length < 2:
+		return []
+	
+	diff = np.zeros(length - 1)
+	for i in range(1, length):
+		diff[i-1] = track.local_feat[i] - track.local_feat[i-1]
+	return diff
+
+def pitch_contour_3_levels(track):
+	pitch_contour = []
+	for i in range(1, len(track.local_feat)):
+		if track.local_feat[i] > track.local_feat[i-1]:
+			pitch_contour.append("u")
+		elif track.local_feat[i] < track.local_feat[i-1]:
+			pitch_contour.append("d")
+		else:
+			pitch_contour.append("r")
+	return np.array(pitch_contour)
+
+def pitch_contour_5_levels(track):
+	pitch_contour = []
+	for i in range(2, len(track.local_feat)):
+		if track.local_feat[i] > track.local_feat[i-2]:
+			pitch_contour.append("U")
+		elif track.local_feat[i] < track.local_feat[i-2]:
+			pitch_contour.append("D")
+		elif track.local_feat[i] > track.local_feat[i-1]:
+			pitch_contour.append("u")
+		elif track.local_feat[i] < track.local_feat[i-1]:
+			pitch_contour.append("d")
+		else:
+			pitch_contour.append("r")
+	return np.array(pitch_contour)
+
+def markov_chain(track):
+	p = octave_abstraction(track)
+	
+	transitions = np.zeros((12, 12))
+	for i in range(len(p) - 1):
+		note_from = p[i]
+		note_to = p[i+1]
+		transitions[note_from, note_to] += 1
+	
+	for i in range(len(transitions)):
+		total = np.sum(transitions[i])
+		if total != 0:
+			transitions[i] /= total
+	
+	return transitions
+
