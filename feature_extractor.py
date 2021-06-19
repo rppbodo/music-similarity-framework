@@ -49,6 +49,21 @@ def feature_extractor(track, extractor_name):
 def melspectrogram(track):
 	return librosa.feature.melspectrogram(track.audio, sr=track.samplerate).T
 
+def beat_synchronous_chroma_stft(track):
+	tempo, beat_frames = librosa.beat.beat_track(y=track.audio, sr=track.samplerate)
+	chromagram = librosa.feature.chroma_stft(track.audio, sr=track.samplerate)
+	return librosa.util.utils.sync(data=chromagram, idx=beat_frames).T
+
+def beat_synchronous_chroma_cqt(track):
+	tempo, beat_frames = librosa.beat.beat_track(y=track.audio, sr=track.samplerate)
+	chromagram = librosa.feature.chroma_cqt(track.audio, sr=track.samplerate)
+	return librosa.util.utils.sync(data=chromagram, idx=beat_frames).T
+
+def beat_synchronous_chroma_cens(track):
+	tempo, beat_frames = librosa.beat.beat_track(y=track.audio, sr=track.samplerate)
+	chromagram = librosa.feature.chroma_cens(track.audio, sr=track.samplerate)
+	return librosa.util.utils.sync(data=chromagram, idx=beat_frames).T
+
 def chroma_stft(track):
 	return librosa.feature.chroma_stft(track.audio, sr=track.samplerate).T
 

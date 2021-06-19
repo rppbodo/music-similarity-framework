@@ -25,7 +25,7 @@ def handle_directories(track, extractor_name, aggregator_name):
 	
 	return os.path.join(track_dir, extractor_name + "-" + aggregator_name + ".gz")
 
-def feature_aggregator(track, extractor_name, aggregator_name):
+def feature_aggregator(track, extractor_name, aggregator_name, **kwargs):
 	filename = handle_directories(track, extractor_name, aggregator_name)
 	
 	if aggregator_name == "bypass":
@@ -35,7 +35,7 @@ def feature_aggregator(track, extractor_name, aggregator_name):
 		print("computing", filename)
 		track.local_feat = fe.feature_extractor(track, extractor_name)
 		thismodule = sys.modules[__name__]
-		global_feat = getattr(thismodule, aggregator_name)(track)
+		global_feat = getattr(thismodule, aggregator_name)(track, **kwargs)
 		track.unload()
 		with gzip.GzipFile(filename, "wb", compresslevel=3) as fo:
 			joblib.dump(global_feat, fo)
@@ -104,7 +104,7 @@ def statistical_summarization(track):
 # ================================================================================================
 # gaussian mixture model
 # ================================================================================================
-def gaussian_mixture_model(track):
+def gaussian_mixture_model_default(track):
 	n_components = 8
 	n_features = track.local_feat.shape[1]
 	
@@ -121,6 +121,30 @@ def gaussian_mixture_model(track):
 	
 	assert len(global_feat) == n_components * (2 * n_features + (n_features * (n_features - 1)) / 2) + n_components
 	return global_feat
+
+# ================================================================================================
+# vector quantization
+# ================================================================================================
+def relative_frequencies(feature, codebook, n_clusters):
+	f = np.zeros(n_clusters)
+	(n, m) = feature.shape
+	for col in range(m):
+		cluster = codebook.predict(feature[:,col].reshape(1, -1))
+		f[cluster] += 1
+	total = np.sum(f)
+	for i in range(len(f)):
+		f[i] /= total
+	return f
+
+def vector_quantization(track, **kwargs):
+	codebook = kwargs["codebook"]
+	n_clusters = kwargs["n_clusters"]
+	return relative_frequencies(track.local_feat.T, codebook, n_clusters)
+
+def vector_quantization_default(track, **kwargs):
+	codebook = kwargs["codebook"]
+	n_clusters = kwargs["n_clusters"]
+	return relative_frequencies(track.local_feat.T, codebook, n_clusters)
 
 # ================================================================================================
 # aggregators for symbolic sequences
