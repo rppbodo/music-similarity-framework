@@ -26,8 +26,8 @@ def handle_directories(track, extractor_name):
 	return os.path.join(track_dir, extractor_name + ".npz")
 
 # local features must be (m, n):
-# m = number of frames
-# n = dimension of the feature
+# where m = number of frames
+#       n = dimension of the feature
 def feature_extractor(track, extractor_name):
 	filename = handle_directories(track, extractor_name)
 	

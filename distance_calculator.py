@@ -7,6 +7,8 @@ import numpy as np
 
 from scipy.spatial.distance import euclidean, cityblock, chebyshev, cosine
 
+import feature_aggregator as fa
+
 def handle_directories(track, extractor_name, aggregator_name, distance_name):
 	base_dir = os.path.join(track.path, "distances")
 	if not os.path.exists(base_dir):
@@ -33,7 +35,7 @@ def distance_calculator(i, tracks, extractor_name, aggregator_name, distance_nam
 		distance = []
 		thismodule = sys.modules[__name__]
 		for j in range(len(tracks)):
-			distance.append(getattr(thismodule, distance_name)(tracks[i], tracks[j]))
+			distance.append(getattr(thismodule, distance_name)(tracks[i], tracks[j], **kwargs))
 		distance = np.array(distance)
 		np.savez(filename, distance)
 		return distance
@@ -58,6 +60,27 @@ def chebyshev_distance(track_a, track_b):
 
 def cosine_distance(track_a, track_b):
 	return cosine(track_a.global_feat, track_b.global_feat)
+
+def commom_oti(track_a, track_b, distance_function, **kwargs):
+	oti_matrix = kwargs["oti_matrix"]
+	aggregator = kwargs["aggregator"]
+	oti = int(oti_matrix[track_a.index, track_b.index])
+	global_feat_a = getattr(fa, aggregator)(track_a)
+	track_b.local_feat = np.roll(track_b.local_feat, oti, axis=1)
+	global_feat_b = getattr(fa, aggregator)(track_b)
+	return distance_function(global_feat_a, global_feat_b)
+
+def euclidean_distance_oti(track_a, track_b, **kwargs):
+	return commom_oti(track_a, track_b, euclidean, **kwargs)
+
+def manhattan_distance_oti(track_a, track_b, **kwargs):
+	return commom_oti(track_a, track_b, cityblock, **kwargs)
+
+def chebyshev_distance_oti(track_a, track_b, **kwargs):
+	return commom_oti(track_a, track_b, chebyshev, **kwargs)
+
+def cosine_distance_oti(track_a, track_b, **kwargs):
+	return commom_oti(track_a, track_b, cosine, **kwargs)
 
 # =================================================================================================
 # distances between symbolic sequences
@@ -98,6 +121,24 @@ def lcs_mean(track_a, track_b):
 def lcs_min(track_a, track_b):
 	return lcs_common(track_a, track_b, np.min)
 
+def lcs_circular_common(track_a, track_b, matrix, function):
+	len_a = len(track_a.global_feat)
+	len_b = len(track_b.global_feat)
+	if len_a == 0 or len_b == 0:
+		return 1
+	
+	lcs_len = matrix[track_a.index, track_b.index]
+	return 1 - lcs_len / function([len_a, len_b])
+
+def lcs_circular_max(track_a, track_b, **kwargs):
+	return lcs_circular_common(track_a, track_b, kwargs["lcs_circular"], np.max)
+
+def lcs_circular_mean(track_a, track_b, **kwargs):
+	return lcs_circular_common(track_a, track_b, kwargs["lcs_circular"], np.mean)
+
+def lcs_circular_min(track_a, track_b, **kwargs):
+	return lcs_circular_common(track_a, track_b, kwargs["lcs_circular"], np.min)
+
 def levenshtein_common(track_a, track_b, function):
 	a = process_sequence(track_a.global_feat)
 	b = process_sequence(track_b.global_feat)
@@ -118,6 +159,24 @@ def levenshtein_mean(track_a, track_b):
 
 def levenshtein_min(track_a, track_b):
 	return levenshtein_common(track_a, track_b, np.min)
+
+def levenshtein_circular_common(track_a, track_b, matrix, function):
+	len_a = len(track_a.global_feat)
+	len_b = len(track_b.global_feat)
+	if len_a == 0 or len_b == 0:
+		return 1
+	
+	levenshtein_dist = matrix[track_a.index, track_b.index]
+	return levenshtein_dist / function([len_a, len_b])
+
+def levenshtein_circular_max(track_a, track_b, **kwargs):
+	return levenshtein_circular_common(track_a, track_b, kwargs["levenshtein_circular"], np.max)
+
+def levenshtein_circular_mean(track_a, track_b, **kwargs):
+	return levenshtein_circular_common(track_a, track_b, kwargs["levenshtein_circular"], np.mean)
+
+def levenshtein_circular_min(track_a, track_b, **kwargs):
+	return levenshtein_circular_common(track_a, track_b, kwargs["levenshtein_circular"], np.min)
 
 # =================================================================================================
 # distances between Markov chains

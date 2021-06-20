@@ -32,8 +32,10 @@ def compute_codebook(dataset, extractor, default):
 		codebook_filename = os.path.join(dataset, "codebooks", extractor + "_codebook_kmeans_" + str(len(classes)) + "_clusters.gz")
 	
 	if not os.path.isdir(os.path.join(dataset, "codebooks")):
-		os.makedirs(os.path.join(dataset, "codebooks"))
+		os.mkdir(os.path.join(dataset, "codebooks"))
 	
 	with gzip.GzipFile(codebook_filename, "wb", compresslevel=3) as fo:
 		joblib.dump(kmeans, fo)
+	
+	return kmeans
 

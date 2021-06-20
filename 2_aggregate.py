@@ -15,23 +15,28 @@ def main(dataset, extractor, aggregator):
 	
 	kwargs = {}
 	if aggregator.startswith("vector_quantization"):
+		codebook = None
 		if aggregator.endswith("default"):
-			codebook_filename = os.path.join(dataset, "codebooks", extractor + "_codebook_kmeans_8_clusters.gz")		
+			codebook_filename = os.path.join(dataset, "codebooks", extractor + "_codebook_kmeans_8_clusters.gz")
 			kwargs["n_clusters"] = 8
 			
 			if not os.path.isfile(codebook_filename):
-				pa.compute_codebook(dataset, extractor, True)
+				codebook = pa.compute_codebook(dataset, extractor, True)
+				print("codebook computed:", codebook)
 		else:
 			codebook_filename = os.path.join(dataset, "codebooks", extractor + "_codebook_kmeans_" + str(len(classes)) + "_clusters.gz")
 			kwargs["n_clusters"] = len(classes)
 			
 			if not os.path.isfile(codebook_filename):
-				pa.compute_codebook(dataset, extractor, False)
-		
-		with gzip.GzipFile(codebook_filename, "rb") as fo:
-			codebook = joblib.load(fo)
-			print("codebook loaded:", codebook)
-			kwargs["codebook"] = codebook
+				codebook = pa.compute_codebook(dataset, extractor, False)
+				print("codebook computed:", codebook)
+
+		if codebook is None:
+			with gzip.GzipFile(codebook_filename, "rb") as fo:
+				codebook = joblib.load(fo)
+				print("codebook loaded:", codebook)
+				kwargs["codebook"] = codebook
+		kwargs["codebook"] = codebook
 	
 	print("aggregating features...")
 	for track in tracks:
