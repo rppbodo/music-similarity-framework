@@ -1,6 +1,6 @@
 # music-similarity-framework
 
-## dataset format##
+## dataset format
 
 the framework expects the dataset tree structure to be like this:
 
