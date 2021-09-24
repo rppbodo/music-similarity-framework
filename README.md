@@ -19,14 +19,23 @@ this framework expects the dataset tree structure to be like this:
 this framework expects the file /path/to/dataset/tracks.csv with the following format:
 
 "class_1","file_1"
+
 ...
+
 "class_1","file_N1"
+
 "class_2","file_1"
+
 ...
+
 "class_2","file_N2"
+
 ...
+
 "class_M","file_1"
+
 ...
+
 "class_M","file_NM"
 
 ## experimented datasets
