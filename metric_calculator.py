@@ -1,6 +1,7 @@
 import os
 
 import numpy as np
+import matplotlib.pyplot as plt
 
 import utils as u
 
@@ -30,6 +31,11 @@ def metric_calculator(dataset, tracks, extractor_name, aggregator_name, distance
 		similarity_matrix = u.invert(distance_matrix)
 		u.check_symmetry(similarity_matrix)
 		np.savez(filename, similarity_matrix)
+		
+		plt.figure()
+		plt.imshow(similarity_matrix, cmap="Blues")
+		plt.savefig(filename.replace(".npz", ".pdf"))
+		
 		return similarity_matrix
 	else:
 		print("loading", filename)

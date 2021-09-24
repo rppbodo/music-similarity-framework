@@ -57,6 +57,11 @@ def main(dataset, extractor, aggregator, distance):
 		
 		kwargs["oti_matrix"] = oti_matrix
 		kwargs["aggregator"] = aggregator
+	else:
+		print("loading global features...")
+		for track in tracks:
+			track.global_feat = fa.feature_aggregator(track, extractor, aggregator)
+		print()
 	
 	print("computing distances...")
 	for track in tracks:
