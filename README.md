@@ -6,11 +6,28 @@ this framework was developed and tested using [anaconda](https://www.anaconda.co
 
 you can clone our environment using the file [environment.yml](https://github.com/rppbodo/music-similarity-framework/blob/main/environment.yml).
 
+also, it is necessary to manually install [https://github.com/tuwien-musicir/rp_extract](https://github.com/tuwien-musicir/rp_extract)
+
 ## dataset format
 
 this framework expects the dataset tree structure to be like this:
 
 ![tree_structure.jpg](https://github.com/rppbodo/music-similarity-framework/blob/main/img/tree_structure.jpg)
+
+## file list
+
+this framework expects the file /path/to/dataset/tracks.csv with the following format:
+
+"class_1","file_1"
+...
+"class_1","file_N1"
+"class_2","file_1"
+...
+"class_2","file_N2"
+...
+"class_M","file_1"
+...
+"class_M","file_NM"
 
 ## experimented datasets
 
